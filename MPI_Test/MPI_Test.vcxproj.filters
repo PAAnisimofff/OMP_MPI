@@ -30,4 +30,7 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="coefficients.txt" />
+  </ItemGroup>
 </Project>
