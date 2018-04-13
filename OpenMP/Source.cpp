@@ -1,7 +1,24 @@
 #include <omp.h>
 #include <iostream>
+#include <vector>
+#include <Windows.h>
 #include <ctime>
 
+// Function that converts numbers form LongInt type to double type
+double LiToDouble(LARGE_INTEGER x)
+{
+	double result =
+		((double)x.HighPart) * 4.294967296E9 + (double)((x).LowPart);
+	return result;
+}
+// Function that gets the timestamp in seconds
+double GetTime()
+{
+	LARGE_INTEGER lpFrequency, lpPerfomanceCount;
+	QueryPerformanceFrequency(&lpFrequency);
+	QueryPerformanceCounter(&lpPerfomanceCount);
+	return LiToDouble(lpPerfomanceCount) / LiToDouble(lpFrequency);
+}
 
 void task_A1()
 {
@@ -143,6 +160,24 @@ void task_A5()
 	}
 }
 
+
+void task_A6()
+{
+	int a[10] = { 1, 2, 3, 4, 5, 6, 5, 4, 3, 2 };
+	int b[10] = { 10, 2, 3, 4, 5, 1, 5, 4, 3, 2 };
+
+	int sum_a = 0, sum_b = 0;
+#pragma omp parallel for reduction(+: sum_a) reduction(+: sum_b)
+	for (int i = 0; i < 10; i++)
+	{
+		sum_a += a[i];
+		sum_b += b[i];
+	}
+
+	printf("%d %d\n", sum_a, sum_b);
+}
+
+
 void task_A7()
 {
 	const int N = 12;
@@ -218,6 +253,87 @@ void task_A8()
 		if (i == N - 2)
 			printf("\n");
 	}
+}
+
+void task_A9()
+{
+	srand(time(0));
+	//std::vector<std::vector<int>> M;
+	//std::vector<int> v, tmp;
+	//int n = 10, i, j;
+	////M.resize(n);
+	////v.resize(n);
+	//std::cout << "vector:\n";
+	//for (i = 0; i < n; i++)
+	//{
+	//	v.push_back(rand() % 100);
+	//	std::cout << v[i] << ' ';
+	//}
+	//std::cout << std::endl;
+	//for (i = 0; i < n; i++)
+	//{
+	//	for (j = 0; j < n; j++)
+	//		tmp.push_back(rand() % 100);
+	//	M.push_back(tmp);
+	//	tmp.clear();
+	//}
+	//std::cout << "matrix:\n";
+	//for (i = 0; i < n; i++)
+	//{
+	//	for (j = 0; j < n; j++)
+	//		std::cout << M[i][j] << ' ';
+	//	std::cout << std::endl;
+	//}
+	const int n = 10000;
+	int i, j;
+	int **M = new int *[n];
+	for (i = 0; i < n; i++)
+		M[i] = new int[n];
+	int *v = new int[n];
+	double start, finish, time;
+	//std::cout << "vector:\n";
+	for (i = 0; i < n; i++)
+	{
+		v[i] = rand() % 100;
+		//std::cout << v[i] << ' ';
+		for (j = 0; j < n; j++)
+			M[i][j] = rand() % 100;
+	}
+	//std::cout << "\nmatrix:\n";
+	/*for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j
+		++)
+			std::cout << M[i][j] << ' ';
+		std::cout << std::endl;
+	}*/
+	int *c = new int[n];
+	//int *M_p = new int[n*n];
+	start = GetTime();
+	for (i = 0; i < n; i++)
+	{
+		c[i] = 0;
+		for (j = 0; j < n; j++)
+			c[i] += M[i][j] * v[j];
+	}
+	finish = GetTime();
+	time = finish - start;
+	std::cout <<"Time:" << time << "c.\n";
+	start = GetTime();
+#pragma omp parallel for schedule(static) num_threads(4) private(j)
+	for (i = 0; i < n; i++)
+	{
+		c[i] = 0;
+		for (j = 0; j < n; j++)
+			c[i] += M[i][j] * v[j];
+	}
+	finish = GetTime();
+	time = finish - start;
+	std::cout << "Time:" << time << "c.\n";
+	/*for (i = 0; i < n; i++)
+		std::cout << c[i] << ' ';*/
+	
+	
 }
 
 void task_A10()
@@ -334,6 +450,6 @@ void task_A12()
 
 int main()
 {
-	task_A12();
+	task_A9();
 	system("pause");
 }
